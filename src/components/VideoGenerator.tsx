@@ -4,13 +4,16 @@ import { Card } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
+import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
 
 export default function VideoGenerator() {
   const [image, setImage] = useState<string | null>(null);
   const [duration, setDuration] = useState([10]);
+  const [prompt, setPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [generatedVideo, setGeneratedVideo] = useState<string | null>(null);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -26,12 +29,14 @@ export default function VideoGenerator() {
   const handleGenerate = () => {
     setIsGenerating(true);
     setProgress(0);
+    setGeneratedVideo(null);
     
     const interval = setInterval(() => {
       setProgress(prev => {
         if (prev >= 100) {
           clearInterval(interval);
           setIsGenerating(false);
+          setGeneratedVideo(image);
           return 100;
         }
         return prev + 5;
@@ -84,6 +89,18 @@ export default function VideoGenerator() {
           <div className="space-y-6">
             <div className="space-y-4">
               <Label className="text-lg font-semibold">
+                Что должно произойти в видео?
+              </Label>
+              <Textarea
+                placeholder="Например: камера плавно поднимается вверх, объект начинает вращаться, появляются искры..."
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                className="min-h-[120px] resize-none glass-effect"
+              />
+            </div>
+
+            <div className="space-y-4">
+              <Label className="text-lg font-semibold">
                 Длительность видео: {duration[0]} секунд
               </Label>
               <Slider
@@ -123,7 +140,7 @@ export default function VideoGenerator() {
 
             <Button
               onClick={handleGenerate}
-              disabled={!image || isGenerating}
+              disabled={!image || !prompt.trim() || isGenerating}
               className="w-full h-14 text-lg font-semibold glow-effect hover:scale-105 transition-transform"
               size="lg"
             >
@@ -151,7 +168,7 @@ export default function VideoGenerator() {
           </div>
         </div>
 
-        {progress === 100 && (
+        {generatedVideo && (
           <div className="mt-8 p-6 glass-effect rounded-lg animate-fade-in space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -169,10 +186,28 @@ export default function VideoGenerator() {
                 </Button>
               </div>
             </div>
-            <div className="aspect-video bg-black/50 rounded-lg flex items-center justify-center">
-              <div className="text-center space-y-2">
-                <Icon name="Play" size={64} className="mx-auto text-primary animate-pulse-glow" />
-                <p className="text-sm text-muted-foreground">Кликните для просмотра</p>
+            
+            <div className="space-y-3">
+              <div className="aspect-video bg-black/50 rounded-lg overflow-hidden relative group">
+                <img src={generatedVideo} alt="Generated video preview" className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                  <div className="text-center space-y-2">
+                    <div className="w-20 h-20 mx-auto rounded-full bg-primary/80 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform cursor-pointer">
+                      <Icon name="Play" size={40} className="text-white ml-1" />
+                    </div>
+                    <p className="text-sm text-white/80">Кликните для просмотра</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="p-4 glass-effect rounded-lg">
+                <div className="flex items-start gap-3">
+                  <Icon name="Sparkles" size={20} className="text-accent mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium mb-1">Применённое действие:</p>
+                    <p className="text-sm text-muted-foreground italic">"{prompt}"</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
