@@ -28,22 +28,46 @@ export default function VideoGenerator() {
     }
   };
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
+    if (!image || !prompt.trim()) return;
+    
     setIsGenerating(true);
     setProgress(0);
     setGeneratedVideo(null);
     
-    const interval = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setIsGenerating(false);
-          setGeneratedVideo(image);
-          return 100;
-        }
-        return prev + 5;
+    const progressInterval = setInterval(() => {
+      setProgress(prev => Math.min(prev + 2, 90));
+    }, 500);
+    
+    try {
+      const response = await fetch('https://functions.poehali.dev/df15a106-f941-4e9c-8de1-6a21cc8f07cd', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          image_url: image,
+          prompt: prompt,
+          duration: duration[0]
+        })
       });
-    }, 200);
+      
+      clearInterval(progressInterval);
+      
+      if (!response.ok) {
+        throw new Error('Failed to generate video');
+      }
+      
+      const data = await response.json();
+      setProgress(100);
+      setGeneratedVideo(data.video_url);
+    } catch (error) {
+      clearInterval(progressInterval);
+      console.error('Error generating video:', error);
+      alert('Ошибка генерации видео. Проверьте, что API ключ добавлен.');
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
