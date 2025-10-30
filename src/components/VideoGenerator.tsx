@@ -5,6 +5,7 @@ import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
 
 export default function VideoGenerator() {
@@ -14,6 +15,7 @@ export default function VideoGenerator() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
   const [generatedVideo, setGeneratedVideo] = useState<string | null>(null);
+  const [showVideoModal, setShowVideoModal] = useState(false);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -188,11 +190,14 @@ export default function VideoGenerator() {
             </div>
             
             <div className="space-y-3">
-              <div className="aspect-video bg-black/50 rounded-lg overflow-hidden relative group">
+              <div 
+                className="aspect-video bg-black/50 rounded-lg overflow-hidden relative group cursor-pointer"
+                onClick={() => setShowVideoModal(true)}
+              >
                 <img src={generatedVideo} alt="Generated video preview" className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/50 transition-colors">
                   <div className="text-center space-y-2">
-                    <div className="w-20 h-20 mx-auto rounded-full bg-primary/80 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform cursor-pointer">
+                    <div className="w-20 h-20 mx-auto rounded-full bg-primary/80 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform">
                       <Icon name="Play" size={40} className="text-white ml-1" />
                     </div>
                     <p className="text-sm text-white/80">Кликните для просмотра</p>
@@ -213,6 +218,67 @@ export default function VideoGenerator() {
           </div>
         )}
       </div>
+
+      <Dialog open={showVideoModal} onOpenChange={setShowVideoModal}>
+        <DialogContent className="max-w-4xl glass-effect border-primary/20">
+          <DialogHeader>
+            <DialogTitle className="text-2xl text-gradient flex items-center gap-2">
+              <Icon name="Video" size={24} />
+              Сгенерированное видео
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="aspect-video bg-black rounded-lg overflow-hidden">
+              <video 
+                src={generatedVideo || ''} 
+                controls 
+                autoPlay 
+                loop
+                className="w-full h-full object-contain"
+              >
+                Ваш браузер не поддерживает видео
+              </video>
+            </div>
+            
+            <div className="p-4 glass-effect rounded-lg">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="flex items-center gap-2">
+                  <Icon name="Clock" size={18} className="text-accent" />
+                  <span className="text-muted-foreground">Длительность:</span>
+                  <span className="font-medium">{duration[0]} сек</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Icon name="Sparkles" size={18} className="text-secondary" />
+                  <span className="text-muted-foreground">Качество:</span>
+                  <span className="font-medium">Ultra HD</span>
+                </div>
+              </div>
+              
+              <div className="mt-4 pt-4 border-t border-white/10">
+                <div className="flex items-start gap-2">
+                  <Icon name="MessageSquare" size={18} className="text-primary mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-xs text-muted-foreground mb-1">Применённое действие:</p>
+                    <p className="text-sm italic">"{prompt}"</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex gap-2">
+              <Button className="flex-1" size="lg">
+                <Icon name="Download" size={20} className="mr-2" />
+                Скачать видео
+              </Button>
+              <Button variant="outline" size="lg">
+                <Icon name="Share2" size={20} className="mr-2" />
+                Поделиться
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
